@@ -356,6 +356,20 @@ remove_airplane_btn = true
 # optional, default false
 remove_idle_btn = true
 
+# Custom buttons in settings panel
+[[settings.CustomButton]]
+name = "Virtual Keyboard"
+icon = "⌨️"
+command = "/path/to/toggle-keyboard.sh"
+status_command = "/path/to/check-keyboard-status.sh"
+tooltip = "Toggle On-Screen Keyboard"
+
+[[settings.CustomButton]]
+name = "Terminal"
+icon = ""
+command = "alacritty"
+tooltip = "Open Terminal"
+
 # Appearance config
 # Each color could be a simple hex color like #228800 or an
 # object that define a base hex color and two optional variant of that color (a strong one and a weak one)
