@@ -8,7 +8,7 @@ use log::{debug, error};
 
 use crate::{
     components::icons::{DynamicIcon, Icon, StaticIcon, icon},
-    config::{Position, SettingsCustomButton, SettingsModuleConfig},
+    config::{Position, SettingsCustomButton, SettingsModuleConfig, SettingsIndicator},
     modules::settings::{
         audio::{AudioSettings, AudioSettingsConfig},
         bluetooth::{BluetoothSettings, BluetoothSettingsConfig},
@@ -45,6 +45,7 @@ pub struct Settings {
     password_dialog: Option<(String, String)>,
     custom_buttons: Vec<SettingsCustomButton>,
     custom_buttons_status: HashMap<String, Option<bool>>,
+    indicators: Vec<SettingsIndicator>,
 }
 
 #[derive(Debug, Clone)]
@@ -115,6 +116,7 @@ impl Settings {
             password_dialog: None,
             custom_buttons: config.custom_buttons,
             custom_buttons_status: HashMap::new(),
+            indicators: config.indicators,
         }
     }
 
@@ -402,6 +404,7 @@ impl Settings {
                 } else if self.idle_inhibitor.is_none() {
                     self.idle_inhibitor = IdleInhibitorManager::new();
                 }
+                self.indicators = config.indicators;
                 Action::None
             }
         }
@@ -583,47 +586,83 @@ impl Settings {
     }
 
     pub fn view<'a>(&'a self, theme: &'a AshellTheme) -> Element<'a, Message> {
-        Row::new()
-            .push_maybe(
-                self.idle_inhibitor
-                    .as_ref()
-                    .filter(|i| i.is_inhibited())
-                    .map(|_| {
-                        container(icon(StaticIcon::EyeOpened)).style(|theme: &Theme| {
-                            container::Style {
-                                text_color: Some(theme.palette().danger),
-                                ..Default::default()
-                            }
+        let mut row = Row::new();
+
+        for indicator in &self.indicators {
+            match indicator {
+                SettingsIndicator::IdleInhibitor => {
+                    if let Some(element) = self
+                        .idle_inhibitor
+                        .as_ref()
+                        .filter(|i| i.is_inhibited())
+                        .map(|_| {
+                            container(icon(StaticIcon::EyeOpened)).style(|theme: &Theme| {
+                                container::Style {
+                                    text_color: Some(theme.palette().danger),
+                                    ..Default::default()
+                                }
+                            })
                         })
-                    }),
-            )
-            .push_maybe(
-                self.power
-                    .power_profile_indicator()
-                    .map(|e| e.map(Message::Power)),
-            )
-            .push_maybe(self.audio.sink_indicator().map(|e| e.map(Message::Audio)))
-            .push(
-                Row::new()
-                    .push_maybe(
-                        self.network
-                            .connection_indicator(theme)
-                            .map(|e| e.map(Message::Network)),
-                    )
-                    .push_maybe(
-                        self.network
-                            .vpn_indicator(theme)
-                            .map(|e| e.map(Message::Network)),
-                    )
-                    .spacing(theme.space.xxs),
-            )
-            .push_maybe(
-                self.power
-                    .battery_indicator(theme)
-                    .map(|e| e.map(Message::Power)),
-            )
-            .spacing(theme.space.xs)
-            .into()
+                    {
+                        row = row.push(element);
+                    }
+                }
+                SettingsIndicator::PowerProfile => {
+                    if let Some(element) = self
+                        .power
+                        .power_profile_indicator()
+                        .map(|e| e.map(Message::Power))
+                    {
+                        row = row.push(element);
+                    }
+                }
+                SettingsIndicator::Audio => {
+                    if let Some(element) =
+                        self.audio.sink_indicator().map(|e| e.map(Message::Audio))
+                    {
+                        row = row.push(element);
+                    }
+                }
+                SettingsIndicator::Network => {
+                    if let Some(element) = self
+                        .network
+                        .connection_indicator(theme)
+                        .map(|e| e.map(Message::Network))
+                    {
+                        row = row.push(element);
+                    }
+                }
+                SettingsIndicator::Vpn => {
+                    if let Some(element) = self
+                        .network
+                        .vpn_indicator(theme)
+                        .map(|e| e.map(Message::Network))
+                    {
+                        row = row.push(element);
+                    }
+                }
+                SettingsIndicator::Bluetooth => {
+                    if let Some(element) = self
+                        .bluetooth
+                        .bluetooth_indicator(theme)
+                        .map(|e| e.map(Message::Bluetooth))
+                    {
+                        row = row.push(element);
+                    }
+                }
+                SettingsIndicator::Battery => {
+                    if let Some(element) = self
+                        .power
+                        .battery_indicator(theme)
+                        .map(|e| e.map(Message::Power))
+                    {
+                        row = row.push(element);
+                    }
+                }
+            }
+        }
+
+        row.spacing(theme.space.xs).into()
     }
 
     pub fn subscription(&self) -> Subscription<Message> {

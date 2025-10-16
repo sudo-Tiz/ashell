@@ -7,13 +7,15 @@ sidebar_position: 12
 This module provides access to system settings like audio, network, bluetooth,  
 battery, power profile and idle inhibitor.
 
-It displays in the status bar indicator about:
+It displays in the status bar indicators about:
 
 - Audio volume
 - Network status
+- Bluetooth connection status
 - Battery status
 - Power profile
 - Idle inhibitor status
+- VPN connection status
 
 And let you interact with these settings:
 
@@ -57,6 +59,32 @@ With the `remove_airplane_btn` option you can remove the airplane mode button.
 
 With the `remove_idle_btn` option you can remove the idle inhibitor button.
 
+## Status Bar Indicators
+
+With the `indicators` option you can customize which status indicators are displayed  
+in the status bar and in what order they appear.
+
+Available indicators are:
+
+- `IdleInhibitor` - Shows an icon when idle inhibitor is active
+- `PowerProfile` - Shows the current power profile icon
+- `Audio` - Shows the audio volume level icon
+- `Network` - Shows the network connection status icon
+- `Vpn` - Shows the VPN connection status icon
+- `Bluetooth` - Shows a Bluetooth icon when connected to at least one device
+- `Battery` - Shows the battery level and charging status
+
+By default, all indicators are enabled and appear in the order listed above.
+
+```toml
+[settings]
+# Customize which indicators to show and their order
+indicators = ["Battery", "Bluetooth", "Network", "Audio"]
+
+# Or use all indicators (default)
+indicators = ["IdleInhibitor", "PowerProfile", "Audio", "Network", "Vpn", "Bluetooth", "Battery"]
+```
+
 ## Custom Buttons
 
 You can add custom buttons to the settings panel using the `CustomButton` configuration.
@@ -80,6 +108,7 @@ These buttons can execute commands when clicked.
 #### Icon Support
 
 The `icon` field accepts:
+
 - **Unicode emoji**: `⌨️`, `🖥️`, `📁`, `🌐`, etc.
 - **Nerd Font symbols**: `󰌓`, ``, ``, etc. (requires Nerd Font installed)
 
@@ -88,6 +117,7 @@ Both are rendered using the `Symbols Nerd Font` and will display correctly in th
 #### Command Execution
 
 Both `command` and `status_command` are executed through **bash shell** (`bash -c`), which means you can use:
+
 - Shell features: pipes (`|`), redirects (`>`), logical operators (`&&`, `||`)
 - Environment variables: `$HOME`, `$USER`, etc.
 - Globs: `*.txt`, `~/Documents/*`
@@ -99,6 +129,7 @@ Commands are executed with your user privileges. Be careful with commands from u
 #### Status Command Timeout
 
 Each `status_command` has a **1 second timeout**. If the command doesn't complete within this time:
+
 - The button state will be shown as "unknown" (grayed out)
 - The process will be killed automatically
 - An error will be logged for debugging
@@ -142,6 +173,7 @@ vpn_more_cmd = "nm-connection-editor"
 bluetooth_more_cmd = "blueman-manager"
 remove_airplane_btn = true
 remove_idle_btn = true
+indicators = ["Battery", "Bluetooth", "Network", "Audio"]
 
 [[settings.CustomButton]]
 name = "Virtual Keyboard"
